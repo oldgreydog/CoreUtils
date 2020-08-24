@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="all" name="CoreUtil2">
+
+	<property environment="env"/>
+	<property name="jar_dir" value="lib"/>
+
+	<echo message="Ant java version: ${ant.java.version}" />
+
+	<target name="clean" description="Destroys all generated files and dirs.">
+		<delete  failonerror="false">
+			<fileset dir="CoreUtil/bin" casesensitive="no">
+				<include name="**/*"/>
+			</fileset>
+		</delete>
+
+		<delete dir="${jar_dir}"  failonerror="false"/>
+	</target>
+
+
+	<target name="coreutil_jar">
+		<mkdir dir="CoreUtil/bin"/>
+
+		<javac includeantruntime="false" srcdir="CoreUtil/src" destdir="CoreUtil/bin" debug="true">
+		</javac>
+
+		<mkdir dir="${jar_dir}"/>
+		<delete file="${jar_dir}/coreutil.jar"/>
+		<jar basedir="CoreUtil/bin"
+			 includes="**/*.class"
+			 jarfile="${jar_dir}/coreutil.jar">
+		</jar>
+
+			<!--<delete dir="CoreUtil/bin"/>-->
+	</target>
+
+
+
+	<target name="all"
+			depends="coreutil_jar">
+	</target>
+
+</project>
