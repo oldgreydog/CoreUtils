@@ -21,6 +21,7 @@
 package coreutil.config;
 
 
+
 import coreutil.logging.*;
 
 import javax.xml.parsers.*;
@@ -28,6 +29,7 @@ import java.util.*;
 import java.io.*;
 import org.xml.sax.*;
 import org.xml.sax.helpers.*;
+
 
 
 public class XMLConfigParser extends DefaultHandler {

@@ -29,14 +29,16 @@ import coreutil.config.*;
 
 
 /*
- * This is a special-use logger.  When you want to capture the output of a single thread
- * so that if can be used for
+ * This is a special-use logger.  When you want to capture the output of a single thread, an instance of this logger
+ * can be added to the Logger.  When the thread reaches a point where it's done with the special logging, it can get
+ * the buffer of log messages from the instance and then can write it to file, for example.
  */
 public class ThreadLogger extends Logger {
 
 	/*
-	 * There are special cases such as SQLQueue where a child thread is created by a parent thread and we need to be able to add
+	 * There are special cases where a child thread is created by a parent thread and we need to be able to add
 	 * the child's logging to the parent's thread log.
+	 *
 	 * Handling child thread logging required a completely different way of handling the life cycle of the ThreadLogger class.
 	 * I changed it so that these static functions handle everything so that it would be much simpler for the end user to deal with.
 	 */
