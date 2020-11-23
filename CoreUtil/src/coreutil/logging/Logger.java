@@ -24,6 +24,7 @@ package coreutil.logging;
 
 
 import java.io.*;
+import java.time.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.*;
@@ -141,21 +142,21 @@ public abstract class Logger {
 
 
 	static 	protected class MessageInfo {
-		public String	m_message		= null;		// Set this to NULL as an explicit reminder that this has to be NULL to work as a shutdown signal to the message writer thread.
-		public int		m_typeID		= 0;
-		public String	m_typeString;
-		public Calendar	m_timeStamp;
-		public long		m_threadID;
+		public String			m_message		= null;		// Set this to NULL as an explicit reminder that this has to be NULL to work as a shutdown signal to the message writer thread.
+		public int				m_typeID		= 0;
+		public String			m_typeString;
+		public ZonedDateTime	m_timeStamp;
+		public long				m_threadID;
 
-		public String	m_timeString	= null;
+		public String			m_timeString	= null;
 
 
 		//*********************************
-		public MessageInfo(String p_message, int p_typeID, String p_typeString, long p_threadID) {
+		public MessageInfo(String p_message, int p_typeID, String p_typeString, ZonedDateTime p_timeStamp, long p_threadID) {
 			m_message 		= p_message;
 			m_typeID 		= p_typeID;
 			m_typeString 	= p_typeString;
-			m_timeStamp		= Calendar.getInstance();
+			m_timeStamp		= p_timeStamp;
 			m_threadID		= p_threadID;
 		}
 
@@ -167,13 +168,13 @@ public abstract class Logger {
 
 		//*********************************
 		/**
-		 * This should only be called by the .
+		 * This should only be called by the MessageWriterThread.
 		 */
 		private void FormatTimestamp() {
 			StringBuilder	t_time		= new StringBuilder();
-			int				t_hour		= m_timeStamp.get(Calendar.HOUR_OF_DAY);
-			int				t_minute	= m_timeStamp.get(Calendar.MINUTE);
-			int				t_seconds	= m_timeStamp.get(Calendar.SECOND);
+			int				t_hour		= m_timeStamp.getHour();
+			int				t_minute	= m_timeStamp.getMinute();
+			int				t_seconds	= m_timeStamp.getSecond();
 
 			if (t_hour < 10)
 				t_time.append("0");
@@ -218,6 +219,7 @@ public abstract class Logger {
 	static	protected	CheckMaxLoggingLevelThread						s_maxLoggingLevelCheckThread	= null;
 
 	static	protected	boolean											s_useDefaultLogger				= true;
+	static	protected	ZoneId											s_timezoneID					= null;
 
 
 			protected	int					m_maxLoggingLevel 		= MESSAGE_LEVEL_WARNING;	// This can be set separately for each logger instance that is added so that each one can decide how much information it is going to log.
@@ -234,6 +236,17 @@ public abstract class Logger {
 			Logger.LogError("Logger.Init() found an existing maxLoggingLevelCheckThread.  The Logger has already been initialized.");
 			return false;
 		}
+
+		String t_timezoneValue = ConfigManager.GetValue("logging.timezone");
+		if (t_timezoneValue == null) {
+			Logger.LogError("Logger.Init() failed to find the [timezone] value.  The logger time zone will default to the local time zone.");
+			s_timezoneID = ZonedDateTime.now().getZone();
+		}
+		else if (t_timezoneValue.equalsIgnoreCase("local"))
+			s_timezoneID = ZonedDateTime.now().getZone();
+		else
+			s_timezoneID = ZoneId.of("UTC");
+
 
 		ConfigNode t_logTarget = ConfigManager.GetNode("logging.logTargets");
 		if (t_logTarget == null) {
@@ -299,6 +312,19 @@ public abstract class Logger {
 
 
 	//===========================================
+	/**
+	 * Now that things are set up to allow the configuration of log times in zulu or the local time zone, I needed a way to get event times
+	 * for other things in the system that should also follow that same rule without setting up random config values everywhere so I
+	 * added this function to handle that.
+	 *
+	 * @return
+	 */
+	static public ZonedDateTime GetEventTime() {
+		return ZonedDateTime.now(s_timezoneID);
+	}
+
+
+	//===========================================
 	static public void Shutdown() {
 		Logger.LogDebug("Logger.Shutdown() is starting.");
 
@@ -345,7 +371,7 @@ public abstract class Logger {
 	static public void LogFatal(String p_message) {
 		try {
 			long t_threadID = Thread.currentThread().getId();
-			s_messageQueue.put(new MessageInfo(p_message, MESSAGE_LEVEL_FATAL, MESSAGE_STRING_FATAL, t_threadID));
+			s_messageQueue.put(new MessageInfo(p_message, MESSAGE_LEVEL_FATAL, MESSAGE_STRING_FATAL, ZonedDateTime.now(s_timezoneID), t_threadID));
 		}
 		catch (Throwable t_dontCare) {}
 	}
@@ -365,7 +391,7 @@ public abstract class Logger {
 			long	t_threadID	= Thread.currentThread().getId();
 			String	t_message	= p_message + "\n" + t_errorStack;
 
-			s_messageQueue.put(new MessageInfo(t_message, MESSAGE_LEVEL_FATAL, MESSAGE_STRING_FATAL, t_threadID));
+			s_messageQueue.put(new MessageInfo(t_message, MESSAGE_LEVEL_FATAL, MESSAGE_STRING_FATAL, ZonedDateTime.now(s_timezoneID), t_threadID));
 		}
 		catch (Throwable t_dontCare) {}
 	}
@@ -390,7 +416,7 @@ public abstract class Logger {
 			long	t_threadID	= Thread.currentThread().getId();
 			String	t_message	= p_message + "\n" + t_errorStack;
 
-			s_messageQueue.put(new MessageInfo(t_message, MESSAGE_LEVEL_EXCEPTION, MESSAGE_STRING_EXCEPTION, t_threadID));
+			s_messageQueue.put(new MessageInfo(t_message, MESSAGE_LEVEL_EXCEPTION, MESSAGE_STRING_EXCEPTION, ZonedDateTime.now(s_timezoneID), t_threadID));
 		}
 		catch (Throwable t_dontCare) {}
 	}
@@ -400,7 +426,7 @@ public abstract class Logger {
 	static public void LogError(String p_message) {
 		try {
 			long t_threadID = Thread.currentThread().getId();
-			s_messageQueue.put(new MessageInfo(p_message, MESSAGE_LEVEL_ERROR, MESSAGE_STRING_ERROR, t_threadID));
+			s_messageQueue.put(new MessageInfo(p_message, MESSAGE_LEVEL_ERROR, MESSAGE_STRING_ERROR, ZonedDateTime.now(s_timezoneID), t_threadID));
 		}
 		catch (Throwable t_dontCare) {}
 	}
@@ -410,7 +436,7 @@ public abstract class Logger {
 	static public void LogWarning(String p_message) {
 		try {
 			long t_threadID = Thread.currentThread().getId();
-			s_messageQueue.put(new MessageInfo(p_message, MESSAGE_LEVEL_WARNING, MESSAGE_STRING_WARNING, t_threadID));
+			s_messageQueue.put(new MessageInfo(p_message, MESSAGE_LEVEL_WARNING, MESSAGE_STRING_WARNING, ZonedDateTime.now(s_timezoneID), t_threadID));
 		}
 		catch (Throwable t_dontCare) {}
 	}
@@ -420,7 +446,7 @@ public abstract class Logger {
 	static public void LogInfo(String p_message) {
 		try {
 			long t_threadID = Thread.currentThread().getId();
-			s_messageQueue.put(new MessageInfo(p_message, MESSAGE_LEVEL_INFO, MESSAGE_STRING_INFO, t_threadID));
+			s_messageQueue.put(new MessageInfo(p_message, MESSAGE_LEVEL_INFO, MESSAGE_STRING_INFO, ZonedDateTime.now(s_timezoneID), t_threadID));
 		}
 		catch (Throwable t_dontCare) {}
 	}
@@ -430,7 +456,7 @@ public abstract class Logger {
 	static public void LogDebug(String p_message) {
 		try {
 			long t_threadID = Thread.currentThread().getId();
-			s_messageQueue.put(new MessageInfo(p_message, MESSAGE_LEVEL_DEBUG, MESSAGE_STRING_DEBUG, t_threadID));
+			s_messageQueue.put(new MessageInfo(p_message, MESSAGE_LEVEL_DEBUG, MESSAGE_STRING_DEBUG, ZonedDateTime.now(s_timezoneID), t_threadID));
 		}
 		catch (Throwable t_dontCare) {}
 	}
@@ -440,7 +466,7 @@ public abstract class Logger {
 	static public void LogVerbose(String p_message) {
 		try {
 			long t_threadID = Thread.currentThread().getId();
-			s_messageQueue.put(new MessageInfo(p_message, MESSAGE_LEVEL_VERBOSE, MESSAGE_STRING_VERBOSE, t_threadID));
+			s_messageQueue.put(new MessageInfo(p_message, MESSAGE_LEVEL_VERBOSE, MESSAGE_STRING_VERBOSE, ZonedDateTime.now(s_timezoneID), t_threadID));
 		}
 		catch (Throwable t_dontCare) {}
 	}

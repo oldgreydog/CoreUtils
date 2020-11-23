@@ -21,6 +21,7 @@
 package coreutil.logging;
 
 
+import java.time.*;
 import java.util.concurrent.*;
 
 
@@ -109,7 +110,7 @@ public abstract class QueuingLogger extends Logger {
 
 			// This shutdown method of putting a "flag" message on the queue and waiting for the thread to find it and stop can block an app from shutting down if there are a ridiculous number of messages in the queue and the log target (i.e. a database) is very slow.
 			// If you can't prevent the number of messages but you don't care if they disappear on shutdown, then you can call m_messageQueue.clear() to clean out the queue before putting the flag message in.
-			m_messageQueue.add(new MessageInfo("", MESSAGE_LEVEL_STOP_THREAD, "", 0));
+			m_messageQueue.add(new MessageInfo("", MESSAGE_LEVEL_STOP_THREAD, "", ZonedDateTime.now(s_timezoneID), 0));
 
 			m_messageProcessingThread.join();
 

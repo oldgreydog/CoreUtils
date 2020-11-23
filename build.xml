@@ -18,7 +18,8 @@
 	<target name="coreutil_jar">
 		<mkdir dir="CoreUtil/bin"/>
 
-		<javac source="1.8" target="1.8" includeantruntime="false" srcdir="CoreUtil/src" destdir="CoreUtil/bin" debug="true">
+		<javac includeantruntime="false" srcdir="CoreUtil/src" destdir="CoreUtil/bin" debug="true">
+<!--	<javac source="1.8" target="1.8" includeantruntime="false" srcdir="CoreUtil/src" destdir="CoreUtil/bin" debug="true"> -->
 		</javac>
 
 		<mkdir dir="${jar_dir}"/>
