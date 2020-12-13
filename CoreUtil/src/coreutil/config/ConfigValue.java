@@ -86,7 +86,7 @@ public class ConfigValue extends ConfigNode {
 	public Integer GetIntValue() {
 		String t_value = GetValue();	// We need to use GetValue() here instead of m_value because the addition of the substitution functionality now means that we have to be sure that if this value has substitutions in it that they are cleared before we try to do the int conversion.
 		try {
-			if (t_value.trim().isEmpty()) {
+			if (t_value.trim().isBlank()) {
 				Logger.LogError("ConfigValue.GetIntValue() failed with error: config option [" + m_name + "] has an empty value.");
 				return null;
 			}
@@ -104,7 +104,7 @@ public class ConfigValue extends ConfigNode {
 	public Float GetFloatValue() {
 		String t_value = GetValue();	// We need to use GetValue() here instead of m_value because the addition of the substitution functionality now means that we have to be sure that if this value has substitutions in it that they are cleared before we try to do the int conversion.
 		try {
-			if (t_value.trim().isEmpty()) {
+			if (t_value.trim().isBlank()) {
 				Logger.LogError("ConfigValue.GetFloatValue() failed with error: config option [" + m_name + "] has an empty value.");
 				return null;
 			}
@@ -122,7 +122,7 @@ public class ConfigValue extends ConfigNode {
 	public Double GetDoubleValue() {
 		String t_value = GetValue();	// We need to use GetValue() here instead of m_value because the addition of the substitution functionality now means that we have to be sure that if this value has substitutions in it that they are cleared before we try to do the int conversion.
 		try {
-			if (t_value.trim().isEmpty()) {
+			if (t_value.trim().isBlank()) {
 				Logger.LogError("ConfigValue.GetDoubleValue() failed with error: config option [" + m_name + "] has an empty value.");
 				return null;
 			}
@@ -140,7 +140,7 @@ public class ConfigValue extends ConfigNode {
 	public Boolean GetBooleanValue() {
 		String t_value = GetValue();	// We need to use GetValue() here instead of m_value because the addition of the substitution functionality now means that we have to be sure that if this value has substitutions in it that they are cleared before we try to do the int conversion.
 		try {
-			if (t_value.trim().isEmpty()) {
+			if (t_value.trim().isBlank()) {
 				Logger.LogError("ConfigValue.GetBooleanValue() failed with error: config option [" + m_name + "] has an empty value.");
 				return null;
 			}

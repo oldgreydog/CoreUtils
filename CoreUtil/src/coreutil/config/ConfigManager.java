@@ -190,7 +190,7 @@ public class ConfigManager {
 
 	//===========================================
 	static public void SetTheseOptionsWritable(String p_writableOptionList) {
-		if (p_writableOptionList.isEmpty())
+		if (p_writableOptionList.isBlank())
 			return;
 
 		String t_separateOptions[] = p_writableOptionList.split(":");
