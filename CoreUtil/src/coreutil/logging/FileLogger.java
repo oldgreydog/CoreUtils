@@ -92,52 +92,76 @@ public class FileLogger extends Logger {
 	//*********************************
 	protected boolean SetOutputFile()
 	{
-		if (m_logWriter == null) {
+		// If a writer already exists, close it first.
+		if (m_logWriter != null) {
 			try {
-				Calendar t_today 	= Calendar.getInstance();
-				int t_month 		= t_today.get(Calendar.MONTH) + 1;
-				int t_day 			= t_today.get(Calendar.DAY_OF_MONTH);
-				String t_dateString = Integer.toString(t_today.get(Calendar.YEAR)) + "_" + ((t_month < 10) ? "0" + t_month : t_month) + "_" + ((t_day < 10) ? "0" + t_day : t_day);
-
-				String t_pathOnly = ConfigManager.GetValue("logging." + m_configSectionName + ".logDirectory");
-				if (t_pathOnly == null) {
-					throw new RuntimeException("FileLogger.SetOutputFile() failed : [logging." + m_configSectionName + ".logDirectory] is not set in the configuration info.");
-				}
-
-				File t_newPath = new File(t_pathOnly);
-
-				if(!t_newPath.exists() && !t_newPath.mkdirs()) {
-					throw new RuntimeException("FileLogger.SetOutputFile() failed to create the [" + t_pathOnly + "] log directory.");
-				}
-				else if (!t_newPath.isDirectory()) {
-					throw new RuntimeException("FileLogger.SetOutputFile() failed : [" + t_pathOnly + "] is not a valid path");
-				}
-
-				String p_filenamePrefix = ConfigManager.GetValue("logging." + m_configSectionName + ".appFileNamePrefix");
-				if (p_filenamePrefix == null)
-					p_filenamePrefix = "";
-
-				File t_newFile = new File(t_pathOnly + "/" + p_filenamePrefix + "_" + t_dateString + ".log");
-				m_logWriter = new FileWriter(t_newFile, true);
-
-				// We'll figure out the next day's date (and set it to 12:00 AM) so that we can easily check for rollover to change the log file.
-				m_tomorrowsDate = (Calendar)t_today.clone();
-				m_tomorrowsDate.add(Calendar.DATE, 1);
-				m_tomorrowsDate.set(Calendar.HOUR, 0);
-				m_tomorrowsDate.set(Calendar.HOUR_OF_DAY, 0);
-				m_tomorrowsDate.set(Calendar.MINUTE, 0);
-				m_tomorrowsDate.set(Calendar.SECOND, 0);
-				m_tomorrowsDate.set(Calendar.MILLISECOND, 0);
-
-				return true;
+				m_logWriter.flush();
+				m_logWriter.close();
 			}
-			catch (IOException t_error) {
-				System.out.println("FileLogger.SetOutputFile() failed with error: " + t_error);
-				return false;
+			catch (Throwable t_dontCare) {
+			}
+			finally {
+				m_logWriter = null;
 			}
 		}
 
-		return false;	// Only one log file can exist since it's "static".
+		// Now create the new output file.
+		try {
+			Calendar t_today 	= Calendar.getInstance();
+			int t_month 		= t_today.get(Calendar.MONTH) + 1;
+			int t_day 			= t_today.get(Calendar.DAY_OF_MONTH);
+			String t_dateString = Integer.toString(t_today.get(Calendar.YEAR)) + "_" + ((t_month < 10) ? "0" + t_month : t_month) + "_" + ((t_day < 10) ? "0" + t_day : t_day);
+
+			String t_pathOnly = ConfigManager.GetValue("logging." + m_configSectionName + ".logDirectory");
+			if (t_pathOnly == null) {
+				throw new RuntimeException("FileLogger.SetOutputFile() failed : [logging." + m_configSectionName + ".logDirectory] is not set in the configuration info.");
+			}
+
+			File t_newPath = new File(t_pathOnly);
+
+			if(!t_newPath.exists() && !t_newPath.mkdirs()) {
+				throw new RuntimeException("FileLogger.SetOutputFile() failed to create the [" + t_pathOnly + "] log directory.");
+			}
+			else if (!t_newPath.isDirectory()) {
+				throw new RuntimeException("FileLogger.SetOutputFile() failed : [" + t_pathOnly + "] is not a valid path");
+			}
+
+			String p_filenamePrefix = ConfigManager.GetValue("logging." + m_configSectionName + ".appFileNamePrefix");
+			if (p_filenamePrefix == null)
+				p_filenamePrefix = "";
+
+			File t_newFile = new File(t_pathOnly + "/" + p_filenamePrefix + "_" + t_dateString + ".log");
+			m_logWriter = new FileWriter(t_newFile, true);	// If the file already exists because, for example, this app has just been restarted, then this constructor will open it in append mode since the append parameter == TRUE.
+
+			// We'll figure out the next day's date (and set it to 12:00 AM) so that we can easily check for rollover to change the log file.
+			m_tomorrowsDate = (Calendar)t_today.clone();
+			m_tomorrowsDate.add(Calendar.DATE, 1);
+			m_tomorrowsDate.set(Calendar.HOUR, 0);
+			m_tomorrowsDate.set(Calendar.HOUR_OF_DAY, 0);
+			m_tomorrowsDate.set(Calendar.MINUTE, 0);
+			m_tomorrowsDate.set(Calendar.SECOND, 0);
+			m_tomorrowsDate.set(Calendar.MILLISECOND, 0);
+
+			return true;
+		}
+		catch (IOException t_error) {
+			System.out.println("FileLogger.SetOutputFile() failed with error: " + t_error);
+
+			// If we failed, then the writer, if it exists, is probably corrupt so we need to dump any reference to it.
+			if (m_logWriter != null) {
+				try {
+					m_logWriter.flush();
+					m_logWriter.close();
+				}
+				catch (Throwable t_dontCare) {
+				}
+				finally {
+					m_logWriter = null;
+				}
+			}
+
+			return false;
+		}
 	}
 
 
@@ -146,13 +170,8 @@ public class FileLogger extends Logger {
 	protected synchronized void InternalShutdown() {
 		m_shutdown = true;
 
+		// Kill the thread first.
 		try {
-			if (m_logWriter != null) {
-				m_logWriter.flush();
-				m_logWriter.close();
-				m_logWriter = null;
-			}
-
 			if (m_flusherThread != null) {
 				m_flusherThread.interrupt();
 				m_flusherThread.join();
@@ -161,6 +180,16 @@ public class FileLogger extends Logger {
 		catch (Throwable t_ignore) {
 		}
 
+		// Then close the file.
+		try {
+			if (m_logWriter != null) {
+				m_logWriter.flush();
+				m_logWriter.close();
+				m_logWriter = null;
+			}
+		}
+		catch (Throwable t_ignore) {
+		}
 	}
 
 
@@ -173,9 +202,6 @@ public class FileLogger extends Logger {
 				if ((m_logWriter != null) &&
 					(m_tomorrowsDate.compareTo(Calendar.getInstance()) <= 0))
 				{
-					m_logWriter.close();
-					m_logWriter = null;
-
 					if (!SetOutputFile())
 						return;
 				}
@@ -187,6 +213,10 @@ public class FileLogger extends Logger {
 		}
 		catch (IOException t_error) {
 			System.out.println("FileLogger.WriteMessage() failed with error: " + t_error);
+
+			// If we get here, the high probability problem was that the log file got deleted or zipped or something while this app was running therefore corrupting the file handle, so we need to recreate the log file to hopefully fix the problem.
+			SetOutputFile();
+
 			return;
 		}
 	}
