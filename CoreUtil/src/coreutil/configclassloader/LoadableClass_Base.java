@@ -30,12 +30,19 @@ public interface LoadableClass_Base {
 
 
 	//*********************************
+	/**
+	 * As the config for the loadable classes is parsed, the loader passes each value found under "Options" to the new class instance through this function.
+	 * That makes if possible for a generic loader to pass any number and type of parameters from the config file into the object.
+	 * @param p_parameterName
+	 * @param p_value
+	 * @return
+	 */
 	public boolean SetParameter(String p_parameterName, String p_value);
 
 
 	//*********************************
 	/**
-	 * It's possible for an options block to have a subtree of nodes as well as the normal values, so this lets those special cases be handled.
+	 * It's possible for an options block to have a subtree of nodes as well as normal single values, so this lets those special cases be handled.
 	 * @param p_configNode
 	 * @return
 	 */
