@@ -53,6 +53,12 @@ import coreutil.logging.*;
  */
 public class ConfigClassLoader {
 
+	// Static members
+
+	static private final String		CONFIG_KEY_CLASS			= "class";
+	static private final String		CONFIG_KEY_OPTIONS			= "options";
+
+
 
 	//*********************************
 	/**
@@ -125,7 +131,7 @@ public class ConfigClassLoader {
 	//*********************************
 	static private LoadableClass_Base InitClass(ConfigNode p_configInfo) {
 		ConfigNode			t_parameter;
-		String				t_className		= p_configInfo.GetNodeValue("class");
+		String				t_className		= p_configInfo.GetNodeValue(CONFIG_KEY_CLASS);
 		LoadableClass_Base	t_newHandler;
 
 		try {
@@ -133,7 +139,7 @@ public class ConfigClassLoader {
 			t_newHandler = t_class.getDeclaredConstructor().newInstance();
 
 			// We'll iterate through the options and send them to the t_newGenerator as parameters.
-			ConfigNode t_handlerOptions = p_configInfo.GetNode("options");
+			ConfigNode t_handlerOptions = p_configInfo.GetNode(CONFIG_KEY_OPTIONS);
 			if (t_handlerOptions != null) {
 				ListIterator<ConfigNode> t_optionIterator = t_handlerOptions.GetChildNodeIterator();
 				while (t_optionIterator.hasNext()) {

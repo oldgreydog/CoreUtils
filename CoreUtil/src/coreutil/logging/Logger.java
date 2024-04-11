@@ -160,11 +160,13 @@ public abstract class Logger {
 			m_threadID		= p_threadID;
 		}
 
+
 		//*********************************
 		/**
 		 * This default constructor is only used to signal the message writer thread to shut down when it receives an empty message.
 		 */
 		public MessageInfo() {}
+
 
 		//*********************************
 		/**
@@ -195,6 +197,7 @@ public abstract class Logger {
 
 			m_timeString = t_time.toString();
 		}
+
 
 		//*********************************
 		@Override
@@ -370,10 +373,12 @@ public abstract class Logger {
 	//===========================================
 	static public void LogFatal(String p_message) {
 		try {
-			long t_threadID = Thread.currentThread().getId();
+			long t_threadID = Thread.currentThread().threadId();
 			s_messageQueue.put(new MessageInfo(p_message, MESSAGE_LEVEL_FATAL, MESSAGE_STRING_FATAL, ZonedDateTime.now(s_timezoneID), t_threadID));
 		}
-		catch (Throwable t_dontCare) {}
+		catch (Throwable t_dontCare) {
+			System.out.println("Logger.LogFatal() failed with error : " + t_dontCare);
+		}
 	}
 
 
@@ -388,7 +393,7 @@ public abstract class Logger {
 				p_exception.printStackTrace(t_printWriter);
 			}
 
-			long	t_threadID	= Thread.currentThread().getId();
+			long	t_threadID	= Thread.currentThread().threadId();
 			String	t_message	= p_message + "\n" + t_errorStack;
 
 			s_messageQueue.put(new MessageInfo(t_message, MESSAGE_LEVEL_FATAL, MESSAGE_STRING_FATAL, ZonedDateTime.now(s_timezoneID), t_threadID));
@@ -413,7 +418,7 @@ public abstract class Logger {
 				p_exception.printStackTrace(t_printWriter);
 			}
 
-			long	t_threadID	= Thread.currentThread().getId();
+			long	t_threadID	= Thread.currentThread().threadId();
 			String	t_message	= p_message + "\n" + t_errorStack;
 
 			s_messageQueue.put(new MessageInfo(t_message, MESSAGE_LEVEL_EXCEPTION, MESSAGE_STRING_EXCEPTION, ZonedDateTime.now(s_timezoneID), t_threadID));
@@ -425,7 +430,7 @@ public abstract class Logger {
 	//===========================================
 	static public void LogError(String p_message) {
 		try {
-			long t_threadID = Thread.currentThread().getId();
+			long t_threadID = Thread.currentThread().threadId();
 			s_messageQueue.put(new MessageInfo(p_message, MESSAGE_LEVEL_ERROR, MESSAGE_STRING_ERROR, ZonedDateTime.now(s_timezoneID), t_threadID));
 		}
 		catch (Throwable t_dontCare) {}
@@ -435,7 +440,7 @@ public abstract class Logger {
 	//===========================================
 	static public void LogWarning(String p_message) {
 		try {
-			long t_threadID = Thread.currentThread().getId();
+			long t_threadID = Thread.currentThread().threadId();
 			s_messageQueue.put(new MessageInfo(p_message, MESSAGE_LEVEL_WARNING, MESSAGE_STRING_WARNING, ZonedDateTime.now(s_timezoneID), t_threadID));
 		}
 		catch (Throwable t_dontCare) {}
@@ -445,7 +450,7 @@ public abstract class Logger {
 	//===========================================
 	static public void LogInfo(String p_message) {
 		try {
-			long t_threadID = Thread.currentThread().getId();
+			long t_threadID = Thread.currentThread().threadId();
 			s_messageQueue.put(new MessageInfo(p_message, MESSAGE_LEVEL_INFO, MESSAGE_STRING_INFO, ZonedDateTime.now(s_timezoneID), t_threadID));
 		}
 		catch (Throwable t_dontCare) {}
@@ -455,7 +460,7 @@ public abstract class Logger {
 	//===========================================
 	static public void LogDebug(String p_message) {
 		try {
-			long t_threadID = Thread.currentThread().getId();
+			long t_threadID = Thread.currentThread().threadId();
 			s_messageQueue.put(new MessageInfo(p_message, MESSAGE_LEVEL_DEBUG, MESSAGE_STRING_DEBUG, ZonedDateTime.now(s_timezoneID), t_threadID));
 		}
 		catch (Throwable t_dontCare) {}
@@ -465,7 +470,7 @@ public abstract class Logger {
 	//===========================================
 	static public void LogVerbose(String p_message) {
 		try {
-			long t_threadID = Thread.currentThread().getId();
+			long t_threadID = Thread.currentThread().threadId();
 			s_messageQueue.put(new MessageInfo(p_message, MESSAGE_LEVEL_VERBOSE, MESSAGE_STRING_VERBOSE, ZonedDateTime.now(s_timezoneID), t_threadID));
 		}
 		catch (Throwable t_dontCare) {}

@@ -72,12 +72,6 @@ import coreutil.logging.*;
 public class ConfigManager {
 
 	static private final String		CONFIG_KEY_CONFIG_SOURCE	= "configSource";
-	static private final String		CONFIG_KEY_CLASS			= "class";
-	static private final String		CONFIG_KEY_ADD_POSITION		= "addPosition";
-	static private final String		CONFIG_KEY_OPTIONS			= "options";
-
-	static private final String		ADD_POSITION_FIRST			= "first";
-	static private final String		ADD_POSITION_LAST			= "last";
 
 
 	static private final	ReentrantReadWriteLock 		s_readWriteLock		= new ReentrantReadWriteLock(true);	// The TRUE turns on "fair" scheduling in the lock.
@@ -125,7 +119,7 @@ public class ConfigManager {
 	static public boolean AddValueSetsFromConfig() {
 		try {
 			// Load the output handlers from the "broker.outputs" block in the config file.
-			Vector<LoadableClass_Base> t_newOutputHandlers = ConfigClassLoader.LoadClasses("configManager", "configSource");
+			Vector<LoadableClass_Base> t_newOutputHandlers = ConfigClassLoader.LoadClasses("configManager", CONFIG_KEY_CONFIG_SOURCE);
 			if (t_newOutputHandlers == null) {
 				Logger.LogError("ConfigManager.AddValueSetsFromConfig() failed to load the [configManager] config node.");
 				return false;
@@ -349,7 +343,7 @@ public class ConfigManager {
 				if (t_optionNameParts.length < t_nextRule.size())
 					continue;
 
-				// If the option name length is equal to the rule, then the it must match the whole rule.
+				// If the option name length is equal to the rule, then it must match the whole rule.
 				// If the rule is shorter than the option name, then only the first parts of the option name have to match the rule parts to pass as writable.
 				for (int i = 0; ((i < t_optionNameParts.length) && (i < t_nextRule.size())); i++) {
 					if (t_nextRule.get(i).compareTo("*") == 0)	// If the rule for this part of the name is == *, then it doesn't matter what the name part is, it's a match so we'll go to the next rule.

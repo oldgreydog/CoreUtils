@@ -76,7 +76,7 @@ public class FileLogger extends Logger {
 
 	//*********************************
 	public FileLogger() {
-		m_configSectionName = "filelogger";
+		m_configSectionName = "fileLogger";
 
 		String t_fileMaxLoggingLevel = ConfigManager.GetValue("logging." + m_configSectionName + ".maxLoggingLevel");
 		if (t_fileMaxLoggingLevel != null)

@@ -142,6 +142,27 @@ public abstract class ConfigValueSet implements LoadableClass_Base {
 
 
 	//*********************************
+	/**
+	 * I changed something in the code generator that caused it to need to get the root node directly, so I had to add this.  I doubt anyone else will need it.
+	 * @return
+	 */
+	public ConfigNode GetRootNode() {
+		try {
+			m_readWriteLock.readLock().lock();	// Still need to lock this since it's possible that a reload could be happening and even just getting the root node has to be protected from that.
+			return m_rootNode;
+		}
+		catch (Throwable t_error) {
+			Logger.LogException("ConfigValueSet.GetRootNode() failed with error: ", t_error);
+		}
+		finally {
+			m_readWriteLock.readLock().unlock();
+		}
+
+		return null;
+	}
+
+
+	//*********************************
 	public ConfigNode GetNode(String p_fullName) {
 		try {
 			m_readWriteLock.readLock().lock();

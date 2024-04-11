@@ -57,7 +57,7 @@ public class ConfigValueSubstituter {
 			int				t_oldIndex		= 0;
 			String			t_valueName;
 			String			t_value;
-			while ((t_newIndex = t_sourceString.indexOf("%%", t_newIndex)) >= 0) {
+			while ((t_newIndex = t_sourceString.indexOf(SUBSTITUTION_DELIMITER, t_newIndex)) >= 0) {
 				t_result.append(t_sourceString.substring(t_oldIndex, t_newIndex));
 				t_oldIndex = t_newIndex + 2;
 
