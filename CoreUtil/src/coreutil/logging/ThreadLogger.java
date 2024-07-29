@@ -24,6 +24,7 @@ package coreutil.logging;
 import java.util.*;
 
 import coreutil.config.*;
+import coreutil.logging.Logger.*;
 
 
 
@@ -33,7 +34,7 @@ import coreutil.config.*;
  * can be added to the Logger.  When the thread reaches a point where it's done with the special logging, it can get
  * the buffer of log messages from the instance and then can write it to file, for example.
  */
-public class ThreadLogger extends Logger {
+public class ThreadLogger extends Logger_Base {
 
 	/*
 	 * There are special cases where a child thread is created by a parent thread and we need to be able to add
@@ -90,7 +91,7 @@ public class ThreadLogger extends Logger {
 		m_configSectionName = "threadLogger";
 		m_threadID			= p_threadID;
 
-		String t_fileMaxLoggingLevel = ConfigManager.GetValue("logging." + m_configSectionName + ".maxLoggingLevel");
+		String t_fileMaxLoggingLevel = ConfigManager.GetStringValue("logging." + m_configSectionName + ".maxLoggingLevel");
 		if (t_fileMaxLoggingLevel != null)
 			SetMaxLoggingLevel(Integer.parseInt(t_fileMaxLoggingLevel));
 	}
@@ -110,14 +111,14 @@ public class ThreadLogger extends Logger {
 
 	//*********************************
 	@Override
-	protected void InternalShutdown() {
+	public void InternalShutdown() {
 		m_shutdown = true;
 	}
 
 
 	//*********************************
 	@Override
-	protected void LogMessage(MessageInfo p_message) {
+	public void LogMessage(MessageInfo p_message) {
 		// Log the message if it comes from the parent thread or the child thread.
 		if (((p_message.m_threadID == m_threadID) ||
 			  m_childThreadMap.containsKey(p_message.m_threadID)) &&

@@ -22,12 +22,13 @@ package coreutil.logging;
 
 
 import coreutil.config.*;
+import coreutil.logging.Logger.*;
 
 import java.io.*;
 import java.util.*;
 
 
-public class FileLogger extends Logger {
+public class FileLogger extends Logger_Base {
 
 	//===========================================
 	static class FlusherThread extends Thread {
@@ -167,7 +168,7 @@ public class FileLogger extends Logger {
 
 	//*********************************
 	@Override
-	protected synchronized void InternalShutdown() {
+	public synchronized void InternalShutdown() {
 		m_shutdown = true;
 
 		// Kill the thread first.
@@ -195,7 +196,7 @@ public class FileLogger extends Logger {
 
 	//*********************************
 	@Override
-	protected void LogMessage(MessageInfo p_message) {
+	public void LogMessage(MessageInfo p_message) {
 		try {
 			if (p_message.m_typeID <= GetMaxLoggingLevel()) {
 				// If we're writing to a log file and the date changes, we need to close the current log file and open a new one.

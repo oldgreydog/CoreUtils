@@ -141,7 +141,7 @@ public abstract class Logger {
 	}
 
 
-	static 	protected class MessageInfo {
+	static public class MessageInfo {
 		public String			m_message		= null;		// Set this to NULL as an explicit reminder that this has to be NULL to work as a shutdown signal to the message writer thread.
 		public int				m_typeID		= 0;
 		public String			m_typeString;
@@ -215,7 +215,7 @@ public abstract class Logger {
 
 
 	static 	private 	final 	ReentrantReadWriteLock					s_loggerInstancesLock			= new ReentrantReadWriteLock();
-	static 	private 	final 	Vector<Logger>							s_loggerInstances				= new Vector<Logger>();
+	static 	private 	final 	Vector<Logger_Base>						s_loggerInstances				= new Vector<Logger_Base>();
 
 	static 	private 	final 	LinkedBlockingQueue<MessageInfo>		s_messageQueue					= new LinkedBlockingQueue<>();
 	static	protected	MessageWriterThread								s_messageWriterThread			= null;
@@ -225,18 +225,20 @@ public abstract class Logger {
 	static	protected	ZoneId											s_timezoneID					= null;
 
 
-			protected	int					m_maxLoggingLevel 		= MESSAGE_LEVEL_WARNING;	// This can be set separately for each logger instance that is added so that each one can decide how much information it is going to log.
-			protected	String				m_configSectionName		= null;
-			protected	boolean				m_checkMaxLogLevelTime	= false;
+	static {
+		// You don't even get default logging on app startup if these are in Init(), so I moved them here.
+		s_messageWriterThread			= new MessageWriterThread();
+		s_messageWriterThread.start();
 
-			protected	volatile boolean	m_shutdown				= false;
-
+		s_maxLoggingLevelCheckThread	= new CheckMaxLoggingLevelThread();
+		s_maxLoggingLevelCheckThread.start();
+	}
 
 
 	//===========================================
 	static public boolean Init() {
-		if (s_maxLoggingLevelCheckThread != null) {
-			Logger.LogError("Logger.Init() found an existing maxLoggingLevelCheckThread.  The Logger has already been initialized.");
+		if (s_timezoneID != null) {
+			Logger.LogError("Logger.Init() found an existing timezone ID.  The Logger has already been initialized.");
 			return false;
 		}
 
@@ -266,7 +268,7 @@ public abstract class Logger {
 			}
 
 			try {
-				Class<Logger> t_class = (Class<Logger>) Class.forName(t_targetClassName);
+				Class<Logger_Base> t_class = (Class<Logger_Base>) Class.forName(t_targetClassName);
 				t_newLogTarget = t_class.getDeclaredConstructor().newInstance();
 
 				s_loggerInstances.add(t_newLogTarget);
@@ -277,18 +279,12 @@ public abstract class Logger {
 			}
 		}
 
-		s_messageWriterThread			= new MessageWriterThread();
-		s_messageWriterThread.start();
-
-		s_maxLoggingLevelCheckThread	= new CheckMaxLoggingLevelThread();
-		s_maxLoggingLevelCheckThread.start();
-
 		return true;
 	}
 
 
 	//===========================================
-	static public void AddLoggerInstance(Logger p_newLogger) {
+	static public void AddLoggerInstance(Logger_Base p_newLogger) {
 		try {
 			s_loggerInstancesLock.writeLock().lock();
 			s_loggerInstances.add(p_newLogger);
@@ -300,7 +296,7 @@ public abstract class Logger {
 
 
 	//===========================================
-	static public void RemoveLoggerInstance(Logger p_targetLogger) {
+	static public void RemoveLoggerInstance(Logger_Base p_targetLogger) {
 		try {
 			s_loggerInstancesLock.writeLock().lock();
 			s_loggerInstances.remove(p_targetLogger);
@@ -356,7 +352,7 @@ public abstract class Logger {
 		try {
 			s_loggerInstancesLock.writeLock().lock();
 
-			for (Logger t_nextLogger: s_loggerInstances)
+			for (Logger_Base t_nextLogger: s_loggerInstances)
 				t_nextLogger.InternalShutdown();
 
 			s_loggerInstances.clear();
@@ -498,7 +494,7 @@ public abstract class Logger {
 				return;
 			}
 
-			for (Logger t_nextLogger: s_loggerInstances)
+			for (Logger_Base t_nextLogger: s_loggerInstances)
 				t_nextLogger.LogMessage(p_message);
 		}
 		catch (Throwable t_error) {
@@ -508,16 +504,6 @@ public abstract class Logger {
 			s_loggerInstancesLock.readLock().unlock();
 		}
 
-	}
-
-
-	//*********************************
-	abstract protected void InternalShutdown();
-
-
-	//*********************************
-	public void SetMaxLoggingLevel(int p_newLevel) {
-		m_maxLoggingLevel = p_newLevel;
 	}
 
 
@@ -532,50 +518,11 @@ public abstract class Logger {
 		try {
 			s_loggerInstancesLock.writeLock().lock();
 
-			for (Logger t_nextLogger: s_loggerInstances)
+			for (Logger_Base t_nextLogger: s_loggerInstances)
 				t_nextLogger.SetFlagToCheckMaxLoggingLevel();
 		}
 		finally {
 			s_loggerInstancesLock.writeLock().unlock();
 		}
 	}
-
-
-	//*********************************
-	protected void SetFlagToCheckMaxLoggingLevel() {
-		m_checkMaxLogLevelTime = true;
-	}
-
-
-	/*********************************
-	 * This lets us update the max logging level in the configuration settings and every so
-	 * often update the value dynamically after the config has be reloaded/changed in the
-	 * app's memory.  I don't want to be hitting a full ConfigManager get() every time we
-	 * log a message because that can be very expensive when we've got a lot of logging going
-	 * on.
-	 * @return
-	 */
-	public int GetMaxLoggingLevel() {
-		if (m_checkMaxLogLevelTime) {
-			int t_oldMaxLoggingLevel = m_maxLoggingLevel;
-			try {
-				if (m_configSectionName != null) {
-					String t_fileMaxLoggingLevel = ConfigManager.GetValue("logging." + m_configSectionName + ".maxLoggingLevel");
-					if (t_fileMaxLoggingLevel != null)
-						m_maxLoggingLevel = Integer.parseInt(t_fileMaxLoggingLevel);
-				}
-			}
-			catch (Throwable t_error) {
-				m_maxLoggingLevel = t_oldMaxLoggingLevel;	// Just in case...
-			}
-
-			m_checkMaxLogLevelTime = false;
-		}
-
-		return m_maxLoggingLevel;
-	}
-
-
-	//*********************************
-	abstract protected void LogMessage(MessageInfo p_message);
 }

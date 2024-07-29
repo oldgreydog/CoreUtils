@@ -24,6 +24,8 @@ package coreutil.logging;
 import java.time.*;
 import java.util.concurrent.*;
 
+import coreutil.logging.Logger.*;
+
 
 
 /*
@@ -33,7 +35,7 @@ import java.util.concurrent.*;
  * log thread.  I would also suggest that you never set the log level for this type of logger higher than, say, ERROR to
  * minimize how many messages have to be sent through it.
  */
-public abstract class QueuingLogger extends Logger {
+public abstract class QueuingLogger extends Logger_Base {
 
 	class MessageQueueThread extends Thread {
 		protected	QueuingLogger	m_logger;
@@ -56,7 +58,7 @@ public abstract class QueuingLogger extends Logger {
 
 					t_message = m_messageQueue.take();	// This blocks if the queue is empty.
 
-					if (t_message.m_typeID == MESSAGE_LEVEL_STOP_THREAD)
+					if (t_message.m_typeID == Logger.MESSAGE_LEVEL_STOP_THREAD)
 						return;
 
 					while (!LogQueuedMessage(t_message)) {
@@ -104,13 +106,13 @@ public abstract class QueuingLogger extends Logger {
 
 	//*********************************
 	@Override
-	protected final void InternalShutdown() {
+	public final void InternalShutdown() {
 		try {
 			m_shutdown = true;
 
 			// This shutdown method of putting a "flag" message on the queue and waiting for the thread to find it and stop can block an app from shutting down if there are a ridiculous number of messages in the queue and the log target (i.e. a database) is very slow.
 			// If you can't prevent the number of messages but you don't care if they disappear on shutdown, then you can call m_messageQueue.clear() to clean out the queue before putting the flag message in.
-			m_messageQueue.add(new MessageInfo("", MESSAGE_LEVEL_STOP_THREAD, "", ZonedDateTime.now(s_timezoneID), 0));
+			m_messageQueue.add(new MessageInfo("", Logger.MESSAGE_LEVEL_STOP_THREAD, "", Logger.GetEventTime(), 0));
 
 			m_messageProcessingThread.join();
 
@@ -128,7 +130,7 @@ public abstract class QueuingLogger extends Logger {
 
 	//*********************************
 	@Override
-	protected void LogMessage(MessageInfo p_message) {
+	public void LogMessage(MessageInfo p_message) {
 		if (!m_shutdown && (p_message.m_typeID <= GetMaxLoggingLevel()))
 			m_messageQueue.add(p_message);
 	}

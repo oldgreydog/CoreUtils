@@ -22,9 +22,10 @@ package coreutil.logging;
 
 
 import coreutil.config.*;
+import coreutil.logging.Logger.*;
 
 
-public class ConsoleLogger extends Logger {
+public class ConsoleLogger extends Logger_Base {
 
 	// Data Members
 
@@ -41,7 +42,7 @@ public class ConsoleLogger extends Logger {
 
 	//*********************************
 	@Override
-	protected void InternalShutdown() {
+	public void InternalShutdown() {
 		m_shutdown = true;
 		System.out.flush();
 		System.err.flush();		// just in case other threads might have put something on the err output...
@@ -50,7 +51,7 @@ public class ConsoleLogger extends Logger {
 
 	//*********************************
 	@Override
-	protected void LogMessage(MessageInfo p_message) {
+	public void LogMessage(MessageInfo p_message) {
 		if (p_message.m_typeID <= GetMaxLoggingLevel()) {
 			System.out.println(p_message.m_typeString + " " + p_message.m_timeString 	+ " | " + p_message.m_threadID + " | " + p_message.m_message);
 		}
