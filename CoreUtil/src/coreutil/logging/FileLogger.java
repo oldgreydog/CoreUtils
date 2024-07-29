@@ -78,7 +78,7 @@ public class FileLogger extends Logger {
 	public FileLogger() {
 		m_configSectionName = "fileLogger";
 
-		String t_fileMaxLoggingLevel = ConfigManager.GetValue("logging." + m_configSectionName + ".maxLoggingLevel");
+		String t_fileMaxLoggingLevel = ConfigManager.GetStringValue("logging." + m_configSectionName + ".maxLoggingLevel");
 		if (t_fileMaxLoggingLevel != null)
 			SetMaxLoggingLevel(Integer.parseInt(t_fileMaxLoggingLevel));
 
@@ -112,7 +112,7 @@ public class FileLogger extends Logger {
 			int t_day 			= t_today.get(Calendar.DAY_OF_MONTH);
 			String t_dateString = Integer.toString(t_today.get(Calendar.YEAR)) + "_" + ((t_month < 10) ? "0" + t_month : t_month) + "_" + ((t_day < 10) ? "0" + t_day : t_day);
 
-			String t_pathOnly = ConfigManager.GetValue("logging." + m_configSectionName + ".logDirectory");
+			String t_pathOnly = ConfigManager.GetStringValue("logging." + m_configSectionName + ".logDirectory");
 			if (t_pathOnly == null) {
 				throw new RuntimeException("FileLogger.SetOutputFile() failed : [logging." + m_configSectionName + ".logDirectory] is not set in the configuration info.");
 			}
@@ -126,7 +126,7 @@ public class FileLogger extends Logger {
 				throw new RuntimeException("FileLogger.SetOutputFile() failed : [" + t_pathOnly + "] is not a valid path");
 			}
 
-			String p_filenamePrefix = ConfigManager.GetValue("logging." + m_configSectionName + ".appFileNamePrefix");
+			String p_filenamePrefix = ConfigManager.GetStringValue("logging." + m_configSectionName + ".appFileNamePrefix");
 			if (p_filenamePrefix == null)
 				p_filenamePrefix = "";
 

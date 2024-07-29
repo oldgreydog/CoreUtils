@@ -255,6 +255,29 @@ public class ConfigManager {
 
 
 	//===========================================
+	static public ConfigValue GetValue(String p_fullName) {
+		try {
+			s_readWriteLock.readLock().lock();
+
+			// Iterate through the value sets to find the first one that has a match for this node path name.
+			ConfigValue t_targetValue;
+			for (ConfigValueSet t_nextValueSet: s_valueSetList) {
+				if ((t_targetValue = t_nextValueSet.GetValue(p_fullName)) != null)
+					return t_targetValue;
+			}
+		}
+		catch (Throwable t_error) {
+			Logger.LogException("ConfigManager.GetValue() failed with error: ", t_error);
+		}
+		finally {
+			s_readWriteLock.readLock().unlock();
+		}
+
+		return null;
+	}
+
+
+	//===========================================
 	/**
 	 * This special function will return ALL instances of the node name found in all of the sets.
 	 * This now lets us load multiple config sets that have duplicate child nodes and get access
@@ -289,18 +312,20 @@ public class ConfigManager {
 
 
 	//===========================================
-	static public String GetValue(String p_fullName) {
+	static public String GetStringValue(String p_fullName) {
 		try {
 			s_readWriteLock.readLock().lock();
 
-			ConfigValue t_targetNode;
-			for (ConfigValueSet t_nextValueSet: s_valueSetList) {
-				if ((t_targetNode = (ConfigValue)t_nextValueSet.GetNode(p_fullName)) != null)
-					return t_targetNode.GetValue();
+			ConfigValue t_targetValue = GetValue(p_fullName);
+			if (t_targetValue == null) {
+				Logger.LogError("ConfigManager.GetStringValue() did not find the String config option [" + p_fullName + "].  A default value of NULL will be returned.");
+				return null;
 			}
+
+			return t_targetValue.GetStringValue();
 		}
 		catch (Throwable t_error) {
-			Logger.LogException("ConfigManager.GetValue() failed with error: ", t_error);
+			Logger.LogException("ConfigManager.GetStringValue() failed with error: ", t_error);
 		}
 		finally {
 			s_readWriteLock.readLock().unlock();
@@ -315,17 +340,13 @@ public class ConfigManager {
 		try {
 			s_readWriteLock.readLock().lock();
 
-			ConfigNode t_targetNode = GetNode(p_fullName);
-			if (t_targetNode == null) {
+			ConfigValue t_targetValue = GetValue(p_fullName);
+			if (t_targetValue == null) {
 				Logger.LogError("ConfigManager.GetBooleanValue() did not find the boolean config option [" + p_fullName + "].  A default value of FALSE will be returned.");
 				return false;
 			}
-			else if (!t_targetNode.IsValue()) {
-				Logger.LogError("ConfigManager.GetBooleanValue() found a node at path [" + p_fullName + "], not a value.  A default value of FALSE will be returned.");
-				return false;
-			}
 
-			return ((ConfigValue)t_targetNode).GetBooleanValue();
+			return t_targetValue.GetBooleanValue();
 		}
 		catch (Throwable t_error) {
 			Logger.LogException("ConfigManager.GetBooleanValue() failed with error: ", t_error);
@@ -342,17 +363,13 @@ public class ConfigManager {
 		try {
 			s_readWriteLock.readLock().lock();
 
-			ConfigNode t_targetNode = GetNode(p_fullName);
-			if (t_targetNode == null) {
+			ConfigValue t_targetValue = GetValue(p_fullName);
+			if (t_targetValue == null) {
 				Logger.LogError("ConfigManager.GetIntValue() did not find the boolean config option [" + p_fullName + "].  A default value of NULL will be returned.");
 				return null;
 			}
-			else if (!t_targetNode.IsValue()) {
-				Logger.LogError("ConfigManager.GetIntValue() found a node at path [" + p_fullName + "], not a value.  A default value of NULL will be returned.");
-				return null;
-			}
 
-			return ((ConfigValue)t_targetNode).GetIntValue();
+			return t_targetValue.GetIntValue();
 		}
 		catch (Throwable t_error) {
 			Logger.LogException("ConfigManager.GetIntValue() failed with error: ", t_error);
@@ -365,21 +382,40 @@ public class ConfigManager {
 
 
 	//===========================================
-	static public Double GetDoublValue(String p_fullName) {
+	static public Float GetFloatlValue(String p_fullName) {
 		try {
 			s_readWriteLock.readLock().lock();
 
-			ConfigNode t_targetNode = GetNode(p_fullName);
-			if (t_targetNode == null) {
-				Logger.LogError("ConfigManager.GetDoublValue() did not find the boolean config option [" + p_fullName + "].  A default value of NULL will be returned.");
-				return null;
-			}
-			else if (!t_targetNode.IsValue()) {
-				Logger.LogError("ConfigManager.GetDoublValue() found a node at path [" + p_fullName + "], not a value.  A default value of NULL will be returned.");
+			ConfigValue t_targetValue = GetValue(p_fullName);
+			if (t_targetValue == null) {
+				Logger.LogError("ConfigManager.GetFloatlValue() did not find the boolean config option [" + p_fullName + "].  A default value of NULL will be returned.");
 				return null;
 			}
 
-			return ((ConfigValue)t_targetNode).GetDoubleValue();
+			return t_targetValue.GetFloatValue();
+		}
+		catch (Throwable t_error) {
+			Logger.LogException("ConfigManager.GetFloatlValue() failed with error: ", t_error);
+			return null;
+		}
+		finally {
+			s_readWriteLock.readLock().unlock();
+		}
+	}
+
+
+	//===========================================
+	static public Double GetDoubleValue(String p_fullName) {
+		try {
+			s_readWriteLock.readLock().lock();
+
+			ConfigValue t_targetValue = GetValue(p_fullName);
+			if (t_targetValue == null) {
+				Logger.LogError("ConfigManager.GetDoublValue() did not find the boolean config option [" + p_fullName + "].  A default value of NULL will be returned.");
+				return null;
+			}
+
+			return t_targetValue.GetDoubleValue();
 		}
 		catch (Throwable t_error) {
 			Logger.LogException("ConfigManager.GetDoublValue() failed with error: ", t_error);

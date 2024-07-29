@@ -110,7 +110,7 @@ public class JavaPropertiesSet extends ConfigValueSet {
 
 			// Transfer the config values from the properties object into this config set.
 			for (Entry<Object, Object> t_nextEntry: m_properties.entrySet())
-				super.SetValue((String)t_nextEntry.getKey(), (String)t_nextEntry.getValue());	// Now that SetValue() is overloaded on this subclass, we have to be sure to only call the super's implementation here.
+				m_rootNode.AddValue((String)t_nextEntry.getKey(), (String)t_nextEntry.getValue());
 
 			return true;
 		}
@@ -143,7 +143,7 @@ public class JavaPropertiesSet extends ConfigValueSet {
 
 			// Transfer the config values from the properties object into this config set.
 			for (Entry<Object, Object> t_nextEntry: m_properties.entrySet())
-				super.SetValue((String)t_nextEntry.getKey(), (String)t_nextEntry.getValue());	// Now that SetValue() is overloaded on this subclass, we have to be sure to only call the super's implementation here.
+				m_rootNode.AddValue((String)t_nextEntry.getKey(), (String)t_nextEntry.getValue());
 
 			return true;
 		}
@@ -191,7 +191,7 @@ public class JavaPropertiesSet extends ConfigValueSet {
 
 				// Transfer the config values from the properties object into this config set.
 				for (Entry<Object, Object> t_nextEntry: m_properties.entrySet())
-					super.SetValue((String)t_nextEntry.getKey(), (String)t_nextEntry.getValue());
+					m_rootNode.AddValue((String)t_nextEntry.getKey(), (String)t_nextEntry.getValue());
 			}
 			catch (Throwable t_error) {
 				Logger.LogException("JavaPropertiesSet.Reload() failed with error: ", t_error);

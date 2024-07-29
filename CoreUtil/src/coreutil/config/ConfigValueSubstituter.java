@@ -64,7 +64,7 @@ public class ConfigValueSubstituter {
 				t_valueName = t_sourceString.substring(t_oldIndex, (t_newIndex = t_sourceString.indexOf(SUBSTITUTION_DELIMITER, t_oldIndex)));
 				t_oldIndex = t_newIndex + 2;
 
-				t_value = ConfigManager.GetValue(t_valueName);
+				t_value = ConfigManager.GetStringValue(t_valueName);
 				if (t_value == null) {
 					Logger.LogError("ConfigValueSubstituter.ReplaceValuesInString() failed to find the config value [" + t_valueName + "] to substitue into the string [" + p_sourceString + "].");
 	//				return null;

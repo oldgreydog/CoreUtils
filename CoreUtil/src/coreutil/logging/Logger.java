@@ -240,7 +240,7 @@ public abstract class Logger {
 			return false;
 		}
 
-		String t_timezoneValue = ConfigManager.GetValue("logging.timezone");
+		String t_timezoneValue = ConfigManager.GetStringValue("logging.timezone");
 		if (t_timezoneValue == null) {
 			Logger.LogError("Logger.Init() failed to find the [timezone] value.  The logger time zone will default to the local time zone.");
 			s_timezoneID = ZonedDateTime.now().getZone();
@@ -257,11 +257,14 @@ public abstract class Logger {
 			return true;	// This isn't necessarily fatal.  Testing code, for example, may not use the config file stuff (or uses it in a non-standard way).
 		}
 
-		ListIterator<ConfigNode> t_targetlist = t_logTarget.GetChildNodeIterator();
-		String t_targetClassName;
-		Logger t_newLogTarget;
-		while (t_targetlist.hasNext()) {
-			t_targetClassName = ((ConfigValue)t_targetlist.next()).GetValue();
+		String		t_targetClassName;
+		Logger_Base t_newLogTarget;
+		for (ConfigValue t_nextTargetName: t_logTarget.GetChildValueList()) {
+			if ((t_targetClassName = t_nextTargetName.GetStringValue()) == null) {
+				Logger.LogFatal("Logger.Init() failed to find a class name for a log target.");
+				return false;
+			}
+
 			try {
 				Class<Logger> t_class = (Class<Logger>) Class.forName(t_targetClassName);
 				t_newLogTarget = t_class.getDeclaredConstructor().newInstance();

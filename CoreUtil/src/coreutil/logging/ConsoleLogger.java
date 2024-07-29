@@ -33,7 +33,7 @@ public class ConsoleLogger extends Logger {
 	public ConsoleLogger() {
 		m_configSectionName = "ConsoleLogger";
 
-		String t_fileMaxLoggingLevel = ConfigManager.GetValue("logging." + m_configSectionName + ".maxLoggingLevel");
+		String t_fileMaxLoggingLevel = ConfigManager.GetStringValue("logging." + m_configSectionName + ".maxLoggingLevel");
 		if (t_fileMaxLoggingLevel != null)
 			SetMaxLoggingLevel(Integer.parseInt(t_fileMaxLoggingLevel));
 	}

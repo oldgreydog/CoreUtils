@@ -114,6 +114,12 @@ public class FileConfigValueSet extends ConfigValueSet {
 
 
 	//*********************************
+	/**
+	 * In applications that don't have real-time management APIs that allow for proper
+	 * configuration changes while the application is running, we need a way to force
+	 * the reloading of the config info from the various sources to retrieve any changes
+	 * that might have been made since the last load/reload.
+	 */
 	@Override
 	public boolean Reload() {
 		if (!m_configFile.exists()) {

@@ -27,7 +27,7 @@ import coreutil.logging.*;
 
 
 
-public class ConfigValue extends ConfigNode {
+public class ConfigValue extends Node_Base {
 
 	// Data Members
 	protected	String						m_value;
@@ -35,8 +35,8 @@ public class ConfigValue extends ConfigNode {
 
 
 	//*********************************
-	public ConfigValue(String p_name, String p_value, ConfigNode p_parent) {
-		super(p_name, p_parent);
+	public ConfigValue(String p_name, String p_value) {
+		super(p_name);
 		m_value = p_value;
 
 		// The way the database config loaders work when they find an :xml: value that needs to be parsed, they create this object with NULL name/value and then fill them in on Init(), so we have to handle that.
@@ -47,19 +47,8 @@ public class ConfigValue extends ConfigNode {
 	}
 
 
-	/*********************************
-	 * This is a bu-tugly kludge that I had to add because it was decided that we were going to use this config code to read in config files that were not of my making (i.e. not my format).  This lead to having to deal with multiple other tag layouts when writing the files back out so the normal "add an overloaded write function" thing didn't work so this is the trick I chose to figure out which type of node I was dealing with.
-	 * @return
-	 */
-	@Override
-	public boolean IsValue() {
-		return true;
-	}
-
-
 	//*********************************
-	public boolean SetValue(String  p_value,
-							boolean p_setDirty)
+	public boolean SetValue(String  p_value)
 	{
 		m_value		= p_value;
 
@@ -73,7 +62,7 @@ public class ConfigValue extends ConfigNode {
 
 
 	//*********************************
-	public String GetValue() {
+	public String GetStringValue() {
 		if (m_configValueSubstituter != null)
 			return m_configValueSubstituter.ReplaceValuesInString(m_value);
 
@@ -82,62 +71,8 @@ public class ConfigValue extends ConfigNode {
 
 
 	//*********************************
-	public Integer GetIntValue() {
-		String t_value = GetValue();	// We need to use GetValue() here instead of m_value because the addition of the substitution functionality now means that we have to be sure that if this value has substitutions in it that they are cleared before we try to do the int conversion.
-		try {
-			if (t_value.trim().isBlank()) {
-				Logger.LogError("ConfigValue.GetIntValue() failed with error: config option [" + m_name + "] has an empty value.");
-				return null;
-			}
-
-			return Integer.parseInt(t_value);
-		}
-		catch (Throwable t_error) {
-			Logger.LogError("ConfigValue.GetIntValue() failed to convert the string [" + t_value + "] to an integer.");
-			return null;
-		}
-	}
-
-
-	//*********************************
-	public Float GetFloatValue() {
-		String t_value = GetValue();	// We need to use GetValue() here instead of m_value because the addition of the substitution functionality now means that we have to be sure that if this value has substitutions in it that they are cleared before we try to do the int conversion.
-		try {
-			if (t_value.trim().isBlank()) {
-				Logger.LogError("ConfigValue.GetFloatValue() failed with error: config option [" + m_name + "] has an empty value.");
-				return null;
-			}
-
-			return Float.parseFloat(t_value);
-		}
-		catch (Throwable t_error) {
-			Logger.LogError("ConfigValue.GetFloatValue() failed to convert the string [" + t_value + "] to a float.");
-			return null;
-		}
-	}
-
-
-	//*********************************
-	public Double GetDoubleValue() {
-		String t_value = GetValue();	// We need to use GetValue() here instead of m_value because the addition of the substitution functionality now means that we have to be sure that if this value has substitutions in it that they are cleared before we try to do the int conversion.
-		try {
-			if (t_value.trim().isBlank()) {
-				Logger.LogError("ConfigValue.GetDoubleValue() failed with error: config option [" + m_name + "] has an empty value.");
-				return null;
-			}
-
-			return Double.parseDouble(t_value);
-		}
-		catch (Throwable t_error) {
-			Logger.LogError("ConfigValue.GetDoubleValue() failed to convert the string [" + t_value + "] to a float.");
-			return null;
-		}
-	}
-
-
-	//*********************************
 	public Boolean GetBooleanValue() {
-		String t_value = GetValue();	// We need to use GetValue() here instead of m_value because the addition of the substitution functionality now means that we have to be sure that if this value has substitutions in it that they are cleared before we try to do the int conversion.
+		String t_value = GetStringValue();	// We need to use GetStringValue() here instead of m_value because the addition of the substitution functionality now means that we have to be sure that if this value has substitutions in it that they are cleared before we try to do the boolean conversion.
 		try {
 			if (t_value.trim().isBlank()) {
 				Logger.LogError("ConfigValue.GetBooleanValue() failed with error: config option [" + m_name + "] has an empty value.");
@@ -161,9 +96,56 @@ public class ConfigValue extends ConfigNode {
 
 
 	//*********************************
-	@Override
-	public void AddChildNode(ConfigNode p_newNode, boolean p_addAsDirty) throws Exception {
-		throw new Exception("ConfigValue.AddChildNode() - value nodes can not have children.");
+	public Integer GetIntValue() {
+		String t_value = GetStringValue();	// We need to use GetStringValue() here instead of m_value because the addition of the substitution functionality now means that we have to be sure that if this value has substitutions in it that they are cleared before we try to do the int conversion.
+		try {
+			if (t_value.trim().isBlank()) {
+				Logger.LogError("ConfigValue.GetIntValue() failed with error: config option [" + m_name + "] has an empty value.");
+				return null;
+			}
+
+			return Integer.parseInt(t_value);
+		}
+		catch (Throwable t_error) {
+			Logger.LogError("ConfigValue.GetIntValue() failed to convert the string [" + t_value + "] to an integer.");
+			return null;
+		}
+	}
+
+
+	//*********************************
+	public Float GetFloatValue() {
+		String t_value = GetStringValue();	// We need to use GetStringValue() here instead of m_value because the addition of the substitution functionality now means that we have to be sure that if this value has substitutions in it that they are cleared before we try to do the float conversion.
+		try {
+			if (t_value.trim().isBlank()) {
+				Logger.LogError("ConfigValue.GetFloatValue() failed with error: config option [" + m_name + "] has an empty value.");
+				return null;
+			}
+
+			return Float.parseFloat(t_value);
+		}
+		catch (Throwable t_error) {
+			Logger.LogError("ConfigValue.GetFloatValue() failed to convert the string [" + t_value + "] to a float.");
+			return null;
+		}
+	}
+
+
+	//*********************************
+	public Double GetDoubleValue() {
+		String t_value = GetStringValue();	// We need to use GetStringValue() here instead of m_value because the addition of the substitution functionality now means that we have to be sure that if this value has substitutions in it that they are cleared before we try to do the double conversion.
+		try {
+			if (t_value.trim().isBlank()) {
+				Logger.LogError("ConfigValue.GetDoubleValue() failed with error: config option [" + m_name + "] has an empty value.");
+				return null;
+			}
+
+			return Double.parseDouble(t_value);
+		}
+		catch (Throwable t_error) {
+			Logger.LogError("ConfigValue.GetDoubleValue() failed to convert the string [" + t_value + "] to a float.");
+			return null;
+		}
 	}
 
 

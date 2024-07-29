@@ -130,8 +130,7 @@ public class ConfigClassLoader {
 
 	//*********************************
 	static private LoadableClass_Base InitClass(ConfigNode p_configInfo) {
-		ConfigNode			t_parameter;
-		String				t_className		= p_configInfo.GetNodeValue(CONFIG_KEY_CLASS);
+		String				t_className		= p_configInfo.GetValue(CONFIG_KEY_CLASS).GetStringValue();
 		LoadableClass_Base	t_newHandler;
 
 		try {
@@ -141,15 +140,12 @@ public class ConfigClassLoader {
 			// We'll iterate through the options and send them to the t_newGenerator as parameters.
 			ConfigNode t_handlerOptions = p_configInfo.GetNode(CONFIG_KEY_OPTIONS);
 			if (t_handlerOptions != null) {
-				ListIterator<ConfigNode> t_optionIterator = t_handlerOptions.GetChildNodeIterator();
-				while (t_optionIterator.hasNext()) {
-					t_parameter = t_optionIterator.next();
+				for (ConfigValue t_nextValue: t_handlerOptions.GetChildValueList())
+					t_newHandler.SetParameter(t_nextValue.GetName(), t_nextValue.GetStringValue());
 
-					if (t_parameter.IsValue())
-						t_newHandler.SetParameter(t_parameter.GetName(), ((ConfigValue)t_parameter).GetValue());
-					else
-						t_newHandler.SetParameter(t_parameter);		// There is at least one special case config setup that has a child node inside the options node so this will handle that.
-				}
+				// There is at least one special case config setup that has a child node inside the options node so this will handle that.
+				for (ConfigNode t_nextNode: t_handlerOptions.GetChildNodeList())
+					t_newHandler.SetParameter(t_nextNode);
 			}
 
 			return t_newHandler;

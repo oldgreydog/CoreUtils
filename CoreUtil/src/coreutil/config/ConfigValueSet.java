@@ -171,13 +171,11 @@ public abstract class ConfigValueSet implements LoadableClass_Base {
 
 
 	//*********************************
-	public String GetValue(String p_fullName) {
+	public ConfigValue GetValue(String p_fullName) {
 		try {
 			m_readWriteLock.readLock().lock();
 
-			ConfigNode t_targetNode = GetNode(p_fullName);
-			if ((t_targetNode != null) && t_targetNode.IsValue())
-				return ((ConfigValue)t_targetNode).GetValue();
+			return m_rootNode.GetValue(p_fullName);
 		}
 		catch (Throwable t_error) {
 			Logger.LogException("ConfigValueSet.GetValue() failed with error: ", t_error);
