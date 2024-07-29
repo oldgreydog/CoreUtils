@@ -8,7 +8,7 @@
 
 	<target name="clean" description="Destroys all generated files and dirs.">
 		<delete  failonerror="false">
-			<fileset dir="CoreUtil/bin" casesensitive="no">
+			<fileset dir="CoreUtil/bin" casesensitive="no" erroronmissingdir="false">
 				<include name="**/*"/>
 			</fileset>
 		</delete>
@@ -22,13 +22,13 @@
 		</javac>
 
 		<mkdir dir="${jar_dir}"/>
-		<delete file="${jar_dir}/coreutil.jar"/>
+		<delete failonerror="false" file="${jar_dir}/coreutil.jar"/>
 		<jar basedir="CoreUtil/bin"
 			 includes="**/*.class"
 			 jarfile="${jar_dir}/coreutil.jar">
 		</jar>
 
-			<!--<delete dir="CoreUtil/bin"/>-->
+			<!--<delete failonerror="false" dir="CoreUtil/bin"/>-->
 	</target>
 
 
