@@ -100,9 +100,6 @@ public class JavaPropertiesSet extends ConfigValueSet {
 				return false;
 			}
 
-			// We have to enable adding nodes to this config set because we are going to use the java utilities to parse the properties file and then we are going to transfer the java properties into this set.
-			SetNodesCanBeAdded(true);
-
 			// Use the java utility to parse the property file.
 			m_properties = new Properties();
 			FileInputStream t_inputStream = new FileInputStream(p_fullPathName);
@@ -135,9 +132,6 @@ public class JavaPropertiesSet extends ConfigValueSet {
 				return false;
 			}
 
-			// We have to enable adding nodes to this config set because we are going to use the java utilities to parse the properties file and then we are going to transfer the java properties into this set.
-			SetNodesCanBeAdded(true);
-
 			// Use the java utility to parse the property file.
 			t_inputStream	= new FileInputStream(p_fullPathName);
 			m_properties	= new Properties();
@@ -161,34 +155,6 @@ public class JavaPropertiesSet extends ConfigValueSet {
 			if (t_inputStream != null)
 				try { t_inputStream.close(); } catch (Throwable t_dontCare) {}
 		}
-	}
-
-
-	//*********************************
-	@Override
-	public boolean Save() {
-		FileOutputStream t_outputStream = null;
-		try {
-			m_readWriteLock.writeLock().lock();
-
-			t_outputStream = new FileOutputStream(m_configFile);
-			if (m_isXml)
-				m_properties.storeToXML(t_outputStream, null);
-			else
-				m_properties.store(t_outputStream, null);
-		}
-		catch (Throwable t_error) {
-			Logger.LogException("JavaPropertiesSet.Save() failed with exception : ", t_error);
-			return false;
-		}
-		finally {
-			m_readWriteLock.writeLock().unlock();
-
-			if (t_outputStream != null)
-				try { t_outputStream.close(); } catch (Throwable t_dontCare) {}
-		}
-
-		return true;
 	}
 
 
@@ -247,26 +213,6 @@ public class JavaPropertiesSet extends ConfigValueSet {
 		}
 	}
 
-
-	//*********************************
-	@Override
-	public void SetValue(String p_fullName, String p_value) {
-		try {
-			m_readWriteLock.writeLock().lock();
-
-			// Pass the call to the base class to change the value in this set.
-			super.SetValue(p_fullName, p_value);
-
-			// Now change the value in the properties so that if it needs to be written back to the file, it will be easy to let the Properies class do that work for us.
-			m_properties.setProperty(p_fullName, p_value);
-		}
-		catch (Throwable t_error) {
-			Logger.LogException("ConfigManager.GetValue() failed with error: ", t_error);
-		}
-		finally {
-			m_readWriteLock.writeLock().unlock();
-		}
-	}
 
 	//*********************************
 	@Override

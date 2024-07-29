@@ -115,39 +115,6 @@ public class FileConfigValueSet extends ConfigValueSet {
 
 	//*********************************
 	@Override
-	public boolean Save() {
-		try {
-			m_readWriteLock.writeLock().lock();
-
-			if (m_rootNode.IsTreeDirty()) {
-				FileWriter t_xmlWriter = new FileWriter(m_configFile);
-				t_xmlWriter.write(XMLConfigParser.XML_HEADER + "\n");
-				if (!m_rootNode.WriteToXML(t_xmlWriter, 0))
-					return false;
-
-				t_xmlWriter.close();
-			}
-		}
-		catch (Throwable t_error) {
-			Logger.LogException("FileConfigValueSet.Save() failed with exception : ", t_error);
-			return false;
-		}
-		finally {
-			m_readWriteLock.writeLock().unlock();
-		}
-
-		return true;
-	}
-
-
-	//*********************************
-	/**
-	 * In applications that don't have real-time management APIs that allow for proper
-	 * configuration changes while the application is running, we need a way to force
-	 * the reloading of the config info from the various sources to retrieve any changes
-	 * that might have been made since the last load/reload.
-	 */
-	@Override
 	public boolean Reload() {
 		if (!m_configFile.exists()) {
 			Logger.LogError("FileConfigValueSet has not been initialized yet.");

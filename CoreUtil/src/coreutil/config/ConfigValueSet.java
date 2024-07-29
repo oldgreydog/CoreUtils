@@ -74,8 +74,6 @@ public abstract class ConfigValueSet implements LoadableClass_Base {
 
 	// Data members
 	protected	ConfigNode		m_rootNode			= null;
-	protected	boolean			m_valuesCanBeEdited	= false;
-	protected	boolean			m_nodesCanBeAdded	= false;
 	protected	String			m_setName			= null;
 
 	protected	ADD_POSITION	m_addPosition		= ADD_POSITION.FIRST;
@@ -125,14 +123,6 @@ public abstract class ConfigValueSet implements LoadableClass_Base {
 
 
 	/*********************************
-	 * A subclass that can persist the configuration values can implement
-	 * this function to traverse the tree to see if there are any "dirty"
-	 * nodes and can write the changes back to the appropriate store.
-	 */
-	abstract public boolean Save();
-
-
-	/*********************************
 	 * In applications that don't have real-time management APIs that allow for proper
 	 * configuration changes while the application is running, we need a way to force
 	 * the reloading of the config info from the various sources to retrieve any changes
@@ -166,6 +156,7 @@ public abstract class ConfigValueSet implements LoadableClass_Base {
 	public ConfigNode GetNode(String p_fullName) {
 		try {
 			m_readWriteLock.readLock().lock();
+
 			return m_rootNode.GetNode(p_fullName);
 		}
 		catch (Throwable t_error) {
@@ -176,24 +167,6 @@ public abstract class ConfigValueSet implements LoadableClass_Base {
 		}
 
 		return null;
-	}
-
-
-	//*********************************
-	public void SetValue(String p_fullName, String p_value) {
-		try {
-			m_readWriteLock.writeLock().lock();
-
-			ConfigNode t_targetNode = GetNode(p_fullName);
-			if ((t_targetNode != null) && t_targetNode.IsValue())
-				((ConfigValue)t_targetNode).SetValue(p_value, true);
-		}
-		catch (Throwable t_error) {
-			Logger.LogException("ConfigValueSet.SetValue() failed with error: ", t_error);
-		}
-		finally {
-			m_readWriteLock.writeLock().unlock();
-		}
 	}
 
 
@@ -220,18 +193,6 @@ public abstract class ConfigValueSet implements LoadableClass_Base {
 	//*********************************
 	public LinkedList<ConfigNode> GetChildNodeList() {
 		return m_rootNode.GetChildNodeList();
-	}
-
-
-	//*********************************
-//	public void SetValuesCanBeEdited(boolean p_valuesCanBeEdited) {
-//		m_valuesCanBeEdited = p_valuesCanBeEdited;
-//	}
-
-
-	//*********************************
-	public void SetNodesCanBeAdded(boolean p_nodesCanBeAdded) {
-		m_nodesCanBeAdded = p_nodesCanBeAdded;
 	}
 
 

@@ -62,7 +62,6 @@ public class ConfigValue extends ConfigNode {
 							boolean p_setDirty)
 	{
 		m_value		= p_value;
-		m_isDirty	= p_setDirty;
 
 		if (m_value.contains(ConfigValueSubstituter.SUBSTITUTION_DELIMITER))
 			m_configValueSubstituter = new ConfigValueSubstituter();

@@ -327,60 +327,6 @@ public class ConfigNode {
 
 
 	//*********************************
-	public void SetNodeDirty() {
-		m_isDirty = true;
-	}
-
-
-	//*********************************
-	public boolean IsNodeDirty() {
-		return m_isDirty;
-	}
-
-
-	/*********************************
-	 * This is a 'short-circuit' function, meaning that it returns TRUE
-	 * on the first node that it finds to be 'dirty'.  Any part of the tree
-	 * that remains will go unsearched.
-	 * @return
-	 */
-	public boolean IsTreeDirty() {
-		if (m_isDirty)	// Nodes can be dirty, too, if child nodes have been added or removed so we have to check this.
-			return true;
-
-		ListIterator<ConfigNode> t_childIterator = m_children.listIterator();
-		while (t_childIterator.hasNext()) {
-			if (t_childIterator.next().IsTreeDirty())
-				return true;
-		}
-
-		return false;	// We only get here if none of the children were dirty.
-	}
-
-
-	/*********************************
-	 * Wherever we use IsTreeDirty() to decided if we need to do a Save(), we have to call this function to clear ALL of the dirty flags from that node down.
-	 * @return
-	 */
-	public boolean ClearTreeDirtyFlags() {
-		m_isDirty = false;
-
-		ListIterator<ConfigNode> t_childIterator = m_children.listIterator();
-		while (t_childIterator.hasNext())
-			t_childIterator.next().ClearTreeDirtyFlags();
-
-		return false;	// We only get here if none of the children were dirty.
-	}
-
-
-	//*********************************
-	public boolean Save(Connection p_dbConnection) {
-		Logger.LogError("ConfigNode.Save() is not implemented in the base class.");
-		return false;
-	}
-
-
-	//*********************************
 	public boolean WriteToXML(Writer p_writer, int p_indentCount) {
 		try {
 			StringBuilder t_indention = new StringBuilder();

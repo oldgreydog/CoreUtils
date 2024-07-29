@@ -76,7 +76,6 @@ public class ConfigManager {
 
 	static private final	ReentrantReadWriteLock 		s_readWriteLock		= new ReentrantReadWriteLock(true);	// The TRUE turns on "fair" scheduling in the lock.
 	static private final	LinkedList<ConfigValueSet>	s_valueSetList		= new LinkedList<ConfigValueSet>();
-	static private			Vector<Vector<String>>		s_writableOptions	= new Vector<Vector<String>>();
 
 
 	//*********************************
@@ -183,39 +182,6 @@ public class ConfigManager {
 
 
 	//===========================================
-	static public void SetTheseOptionsWritable(String p_writableOptionList) {
-		if (p_writableOptionList.isBlank())
-			return;
-
-		String t_separateOptions[] = p_writableOptionList.split(":");
-		Vector<String>	t_nextOptionParts;
-		String			t_parts[];
-		for (String t_nextOption: t_separateOptions) {
-			t_parts				= t_nextOption.split("\\.");
-			t_nextOptionParts	= new Vector<String>(t_parts.length);
-			for (String t_nextPart: t_parts)
-				t_nextOptionParts.add(t_nextPart);
-
-			s_writableOptions.add(t_nextOptionParts);
-		}
-	}
-
-
-	//===========================================
-	static public boolean SaveChanges() {
-		// Because of the extreme time cost of some of the reloads, I moved the reload locking inside the individual value sets so that the locking can be done in the smallest unit necessary so that contention is minimized as much as possible.
-		for (ConfigValueSet t_nextValueSet: s_valueSetList) {
-			if (!t_nextValueSet.Save()) {
-				Logger.LogError("ConfigManager.SaveChanges() failed to save config set [" + t_nextValueSet.GetSetName() + "].");
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-
-	//===========================================
 	static public boolean ReloadTargetConfigurations(String p_targetName) {
 		// Because of the extreme time cost of some of the reloads, I moved the reload locking inside the individual value sets so that the locking can be done in the smallest unit necessary so that contention is minimized as much as possible.
 		for (ConfigValueSet t_nextValueSet: s_valueSetList) {
@@ -232,10 +198,6 @@ public class ConfigManager {
 
 	//===========================================
 	static public boolean ReloadAllConfigurations() {
-		// I'm not sure why I didn't do this originally in the code, but I'm going to add it now.  I think it makes sense to be sure that any changes are saved before we do a reload.
-		if (!SaveChanges())
-			return false;
-
 		// Because of the extreme time cost of some of the reloads, I moved the reload locking inside the individual value sets so that the locking can be done in the smallest unit necessary so that contention is minimized as much as possible.
 		for (ConfigValueSet t_nextValueSet: s_valueSetList) {
 			if (!t_nextValueSet.Reload()) {
@@ -253,11 +215,9 @@ public class ConfigManager {
 		try {
 			s_readWriteLock.writeLock().lock();
 
-			if (p_saveChanges) {
-				SaveChanges();
-			}
+			// If any value sets are created such that they have resources they need to clean up (i.e. network connections, etc.), then we'll need to add a Shutdown() function to ConfigValueSet and go through and call it here.
 
-			s_valueSetList.clear();	// Remove all configuration value sets now that they have been saved.
+			s_valueSetList.clear();	// Remove all configuration value sets.
 		}
 		catch (Throwable t_error) {
 			Logger.LogException("ConfigManager.Close() failed with error: ", t_error);
@@ -325,60 +285,6 @@ public class ConfigManager {
 		finally {
 			s_readWriteLock.readLock().unlock();
 		}
-	}
-
-
-	//===========================================
-	static public boolean SetValue(String p_fullName, String p_value) {
-		try {
-			s_readWriteLock.writeLock().lock();
-
-			// Before we aquire the lock, we need to figure out if this option is even writable.
-			boolean t_optionIsWritable = false;
-			String	t_optionNameParts[]	= p_fullName.split("\\.");
-
-		outerLoop:
-			for (Vector<String> t_nextRule: s_writableOptions) {
-				// If the target option name is shorter than the rule, then it can't be writable be this rule so we'll move on to the next rule.
-				if (t_optionNameParts.length < t_nextRule.size())
-					continue;
-
-				// If the option name length is equal to the rule, then it must match the whole rule.
-				// If the rule is shorter than the option name, then only the first parts of the option name have to match the rule parts to pass as writable.
-				for (int i = 0; ((i < t_optionNameParts.length) && (i < t_nextRule.size())); i++) {
-					if (t_nextRule.get(i).compareTo("*") == 0)	// If the rule for this part of the name is == *, then it doesn't matter what the name part is, it's a match so we'll go to the next rule.
-						continue;
-
-					if (t_nextRule.get(i).compareToIgnoreCase(t_optionNameParts[i]) != 0)
-						continue outerLoop;	// If the name part doesn't match, then it fails this rule and we need to go on to the next rule.
-				}
-
-				// If we get here, then the name passed all of the parts of the rule so we are done.
-				t_optionIsWritable = true;
-				break;
-			}
-
-			if (!t_optionIsWritable)
-				return false;
-
-
-			ConfigValue t_targetNode = (ConfigValue)GetNode(p_fullName);	// This does the recursing-through-the-tree thing for us, so it will either return a ConfigValue object or NULL.
-			if (t_targetNode == null) {
-				Logger.LogError("ConfigManager.SetValue() did not find the value [" + p_fullName + "] so it can not be changed.  Node creation is not currently supported.");
-				return false;
-			}
-
-			t_targetNode.SetValue(p_value, true);
-		}
-		catch (Throwable t_error) {
-			Logger.LogException("ConfigManager.SetValue() failed with error: ", t_error);
-			return false;
-		}
-		finally {
-			s_readWriteLock.writeLock().unlock();
-		}
-
-		return true;
 	}
 
 
