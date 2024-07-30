@@ -221,7 +221,6 @@ public abstract class Logger {
 	static	protected	MessageWriterThread								s_messageWriterThread			= null;
 	static	protected	CheckMaxLoggingLevelThread						s_maxLoggingLevelCheckThread	= null;
 
-	static	protected	boolean											s_useDefaultLogger				= true;
 	static	protected	ZoneId											s_timezoneID					= null;
 
 
@@ -304,12 +303,6 @@ public abstract class Logger {
 		finally {
 			s_loggerInstancesLock.writeLock().unlock();
 		}
-	}
-
-
-	//===========================================
-	static public void UseDefaultLogger(boolean p_useDefaultLogger) {
-		s_useDefaultLogger = p_useDefaultLogger;
 	}
 
 
@@ -488,8 +481,7 @@ public abstract class Logger {
 			s_loggerInstancesLock.readLock().lock();
 
 			if (s_loggerInstances.isEmpty()) {
-				if (s_useDefaultLogger)
-					DefaultLogger(p_message);
+				DefaultLogger(p_message);
 
 				return;
 			}
