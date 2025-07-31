@@ -52,8 +52,11 @@ public class ConsoleLogger extends Logger_Base {
 	//*********************************
 	@Override
 	public void LogMessage(MessageInfo p_message) {
+		if (m_shutdown)
+			return;
+
 		if (p_message.m_typeID <= GetMaxLoggingLevel()) {
-			System.out.println(p_message.m_typeString + " " + p_message.m_timeString 	+ " | " + p_message.m_threadID + " | " + p_message.m_message);
+			System.out.println(p_message.toString());	// Changed this to use the toString() on the MessageInfo class to do the output.  In cases where two or more loggers (i.e. File and Console) use the same output format, then we can take advantage of caching of the default output string that toString() now does.
 		}
 	}
 }

@@ -198,6 +198,9 @@ public class FileLogger extends Logger_Base {
 	@Override
 	public void LogMessage(MessageInfo p_message) {
 		try {
+			if (m_shutdown)
+				return;
+
 			if (p_message.m_typeID <= GetMaxLoggingLevel()) {
 				// If we're writing to a log file and the date changes, we need to close the current log file and open a new one.
 				if ((m_logWriter != null) &&
@@ -209,7 +212,7 @@ public class FileLogger extends Logger_Base {
 
 				// Since SetOutputFile() could fail (theoretically), I'll just keep this second check for a valid s_logWriter.
 				if (m_logWriter != null)
-					m_logWriter.write(p_message.m_typeString + " " + p_message.m_timeString + " | " + p_message.m_threadID + " | " + p_message.m_message + "\n");
+					m_logWriter.write(p_message.toString());	// Changed this to use the toString() on the MessageInfo class to do the output.  In cases where two or more loggers (i.e. File and Console) use the same output format, then we can take advantage of caching of the default output string that toString() now does.
 			}
 		}
 		catch (IOException t_error) {

@@ -25,7 +25,6 @@ import coreutil.logging.*;
 
 import java.io.*;
 import java.util.*;
-import java.sql.*;
 
 
 

@@ -149,6 +149,7 @@ public abstract class Logger {
 		public long				m_threadID;
 
 		public String			m_timeString	= null;
+		public String			m_toStringCache	= null;		// Since toString() will recreate the same thing every time, we might as well cache its output the first time and just return it in subsequent calls.
 
 
 		//*********************************
@@ -202,14 +203,20 @@ public abstract class Logger {
 		//*********************************
 		@Override
 		public String toString() {
+			if (m_toStringCache != null)
+				return m_toStringCache;
+
 			StringBuilder t_message = new StringBuilder();
-			t_message.append(m_typeString + " : " + " " + m_timeString + " | " + m_threadID + " | ");
+			t_message.append(m_typeString + " " + " " + m_timeString + " | " + m_threadID + " | ");
 			if (m_message != null)
 				t_message.append(m_message);
 			else
 				t_message.append(" <null message> ");
 
-			return t_message.toString();
+			t_message.append("\n");
+
+			m_toStringCache = t_message.toString();
+			return m_toStringCache;
 		}
 	}
 
@@ -508,13 +515,13 @@ public abstract class Logger {
 	 */
 	static protected void FlagLoggersForMaxLevelCheck() {
 		try {
-			s_loggerInstancesLock.writeLock().lock();
+			s_loggerInstancesLock.readLock().lock();
 
 			for (Logger_Base t_nextLogger: s_loggerInstances)
 				t_nextLogger.SetFlagToCheckMaxLoggingLevel();
 		}
 		finally {
-			s_loggerInstancesLock.writeLock().unlock();
+			s_loggerInstancesLock.readLock().unlock();
 		}
 	}
 }
